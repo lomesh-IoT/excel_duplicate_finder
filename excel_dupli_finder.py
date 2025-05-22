@@ -13,20 +13,25 @@ if uploaded_file:
 
     columns = st.multiselect("Select columns to check for duplicates", df.columns.tolist())
 
+    st.write("Selected columns:", columns)
+
     if st.button("Find Duplicates"):
         if columns:
-            df["Is_Duplicate"] = df.duplicated(subset=columns, keep=False)
-            st.write(df)
+            duplicates = df[df.duplicated(subset=columns, keep=False)]
+            st.write("Duplicates found:", duplicates)
+            st.dataframe(duplicates)
 
+            # Download button for duplicates
             buffer = BytesIO()
-            df.to_excel(buffer, index=False)
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                duplicates.to_excel(writer, index=False, sheet_name='Duplicates')
             buffer.seek(0)
-
             st.download_button(
-                label="Download Updated Excel",
+                label="Download Duplicates",
                 data=buffer,
-                file_name="duplicates_checked.xlsx",
+                file_name="duplicates.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.warning("Please select at least one column.")
+            st.warning("Please select at least one column to check for duplicates.")
+   
